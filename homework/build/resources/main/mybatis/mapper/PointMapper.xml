@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+  
+  <mapper namespace="com.triple.homework.point.mapper.PointMapper">
+  
+  	<select id="getRewardValue" parameterType="com.triple.homework.point.vo.RewardVO" resultType="com.triple.homework.point.vo.RewardVO">
+  		SELECT 
+  			ACTION
+			,TYPE
+			,VALUE
+			,USE_YN
+			,RGST_DTM
+			,RGST_ID
+			,CHG_DTM
+			,CHG_ID
+  		FROM REWARD
+  		WHERE TYPE = #{type}
+  		AND USE_YN = "Y"
+  	</select>
+  	<insert id="insertPointHistory"  parameterType="com.triple.homework.point.vo.PointHistoryVO">
+  		INSERT INTO POINT_HISTORY
+  		(
+  			HISTORY_ID
+  			,USER_ID
+			,REVIEW_ID
+			,ACTION
+			,TYPE
+			,VALUE
+			,RGST_DTM
+			,RGST_ID
+  		)
+  		VALUES
+  		(
+  			UUID()
+  			,#{userId}
+  			,#{reviewId}
+  			,#{action}
+  			,#{type}
+  			,#{value}
+			,NOW()
+			,#{rgstId}
+  		)
+  	</insert>
+  	
+  	<select id="getPoint" parameterType="com.triple.homework.point.vo.PointVO" resultType="com.triple.homework.point.vo.PointVO">
+  		SELECT
+			POINT_ID
+			,USER_ID
+			,VALUE
+			,RGST_DTM
+			,RGST_ID
+			,CHG_DTM
+			,CHG_ID	
+  		FROM POINT
+  		WHERE USER_ID = #{userId}
+  	</select>
+  	
+  	<update id="updatePoint" parameterType="com.triple.homework.point.vo.PointVO">
+  		UPDATE POINT
+  		SET VALUE = #{value}
+  			,CHG_DTM = NOW()
+  			,CHG_ID = #{chgId}
+  		WHERE USER_ID = #{userId}
+  	</update>
+  	
+  	<select id="getPointHistoryByUserId" parameterType="com.triple.homework.review.vo.ReviewVO" resultType="com.triple.homework.point.vo.PointHistoryVO">
+  		<!-- SELECT
+	  			HISTORY_ID
+	  			,USER_ID
+				,REVIEW_ID
+				,ACTION
+				,TYPE
+				,VALUE
+				,RGST_DTM
+				,RGST_ID
+				,CHG_DTM
+				,CHG_ID
+		FROM POINT_HISTORY
+		WHERE 
+		USER_ID = #{userId}
+		<if test="reviewId != null">
+		AND REVIEW_ID = #{reviewId}
+		</if>
+		ORDER BY HISTORY_ID
+		 -->
+		SELECT
+	  			HISTORY_ID
+	  			,USER_ID
+				,REVIEW_ID
+				,ACTION
+				,TYPE
+				,VALUE
+				,RGST_DTM
+				,RGST_ID
+				,CHG_DTM
+				,CHG_ID
+		FROM POINT_HISTORY
+		WHERE RGST_DTM = (SELECT RGST_DTM FROM POINT_HISTORY WHERE USER_ID = #{userId}
+						AND REVIEW_ID = #{reviewId}
+						GROUP BY RGST_DTM
+	        			ORDER BY RGST_DTM DESC LIMIT 1)
+  	</select>
+
+
+	<select id="getMileageHistory" resultType="com.triple.homework.point.vo.PointHistoryVO" parameterType="com.triple.homework.login.vo.UserVO">
+		SELECT
+				PH.HISTORY_ID
+	  			,PH.USER_ID
+				,PH.REVIEW_ID
+				,PH.ACTION
+				,PH.TYPE
+				,PH.VALUE
+				,PH.RGST_DTM
+				,PH.RGST_ID
+				,PH.CHG_DTM
+				,PH.CHG_ID
+				,U.NAME AS USER_NAME
+				,P.NAME AS PLACE_NAME
+				,C.CODE_DESC AS TYPE_DESC
+				,C2.CODE_DESC AS ACTION_DESC
+		FROM POINT_HISTORY PH
+		JOIN USER U ON PH.USER_ID = U.USER_ID
+		JOIN REVIEW R ON PH.REVIEW_ID = R.REVIEW_ID
+		JOIN PLACE P ON R.PLACE_ID = P.PLACE_ID
+		JOIN CODE C ON PH.TYPE = C.CODE_VALUE
+		JOIN CODE C2 ON PH.ACTION = C2.CODE_VALUE
+		WHERE PH.USER_ID = #{userId}
+		ORDER BY PH.RGST_DTM DESC
+	</select>
+  
+  
+  </mapper>
