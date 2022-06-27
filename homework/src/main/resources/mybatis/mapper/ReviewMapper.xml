@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.triple.homework.review.mapper.ReviewMapper">
+
+	<!-- 모든 장소 목록 조회  -->
+	<select id="getAllPlaces" resultType="com.triple.homework.review.vo.PlaceVO">
+	SELECT
+		PLACE_ID
+		,NAME
+		,RGST_DTM
+		,RGST_ID
+		,CHG_DTM
+		,CHG_ID
+	FROM PLACE
+	ORDER BY PLACE_ID;
+	</select>
+	<!-- 선택한 상품의 모든 리뷰조회 -->
+	<select id="getAllReviewByPlaceId" resultType="com.triple.homework.review.vo.ReviewVO" parameterType="com.triple.homework.review.vo.PlaceVO">
+	SELECT 
+		R.REVIEW_ID
+			,R.CONTENT
+			,R.USER_ID
+			,R.ATTACHED_PHOTO_IDS_STRING
+			,R.PLACE_ID
+			,P.NAME AS PLACE_NAME
+			,U.NAME AS USER_NAME
+			,R.RGST_DTM
+			,R.RGST_ID
+			,R.CHG_DTM
+			,R.CHG_ID
+
+		FROM REVIEW R
+		JOIN triple.PLACE P
+		ON R.PLACE_ID = P.PLACE_ID
+		JOIN USER U
+		ON R.USER_ID = U.USER_ID
+		WHERE R.PLACE_ID = #{placeId}
+		AND R.DELETE_YN = "N"
+		ORDER BY R.REVIEW_ID;
+	</select>
+	
+	
+<!-- 선택한 리뷰의 상세 조회 -->
+	<select id="getReviewByReviewId" resultType="com.triple.homework.review.vo.ReviewVO"  parameterType="com.triple.homework.review.vo.ReviewVO">
+		SELECT 
+			R.REVIEW_ID
+			,R.CONTENT
+			,R.USER_ID
+			,R.ATTACHED_PHOTO_IDS_STRING
+			,R.PLACE_ID
+			,P.NAME AS PLACE_NAME
+			,U.NAME AS USER_NAME
+			,R.RGST_DTM
+			,R.RGST_ID
+			,R.CHG_DTM
+			,R.CHG_ID
+
+        
+		FROM REVIEW R
+		JOIN PLACE P
+		ON R.PLACE_ID = P.PLACE_ID
+		JOIN USER U
+		ON R.USER_ID = U.USER_ID
+		WHERE R.REVIEW_ID = #{reviewId}
+		AND R.DELETE_YN = "N"
+		ORDER BY R.REVIEW_ID;
+	</select>
+	
+	<insert id="insertReview" parameterType="com.triple.homework.review.vo.ReviewVO">
+		INSERT INTO REVIEW
+		(
+			REVIEW_ID
+			,CONTENT
+			,USER_ID
+			,ATTACHED_PHOTO_IDS_STRING
+			,PLACE_ID
+			,RGST_DTM
+			,RGST_ID
+			,DELETE_YN
+		)
+		VALUES
+		(
+			#{reviewId}
+			,#{content}
+			,#{userId}
+			,#{attachedPhotoIdsString}
+			,#{placeId}
+			,NOW()
+			,#{userId}
+			,"N"
+		)
+	</insert>
+	
+	<select id="getCountReviewByPlaceId" resultType="Integer"  parameterType="com.triple.homework.review.vo.ReviewVO">
+			SELECT COUNT(*)
+			FROM REVIEW		
+			WHERE PLACE_ID = #{placeId}
+			AND DELETE_YN = "N"
+	</select>
+	
+	<update id="deleteReview" parameterType="com.triple.homework.review.vo.ReviewVO">
+		UPDATE REVIEW 
+		SET DELETE_YN = "Y"
+		WHERE REVIEW_ID = #{reviewId}
+	</update>
+	
+	
+	<update id="updateReview" parameterType="com.triple.homework.review.vo.ReviewVO">
+		UPDATE REVIEW
+		SET CONTENT = #{content}
+			,ATTACHED_PHOTO_IDS_STRING = #{attachedPhotoIdsString}
+			,CHG_DTM = NOW()
+			,CHG_ID = #{chgId}
+		WHERE REVIEW_ID = #{reviewId}
+	</update>
+</mapper>
